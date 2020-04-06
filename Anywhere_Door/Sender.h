@@ -24,4 +24,5 @@ private:
 private:
 	asio::ip::tcp::socket socket_;
 	flexbuffers::Builder flexbuffers_builder_;
+	std::string delim{ "^_^" };
 };

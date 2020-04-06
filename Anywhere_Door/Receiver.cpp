@@ -14,12 +14,12 @@ void session::do_read()
 {
 	auto self(shared_from_this());
 
-	asio::async_read_until(socket_, asio::dynamic_buffer(input_buffer_), "\r\n", [this, self](const std::error_code& error, std::size_t bytes_transferred)
+	asio::async_read_until(socket_, asio::dynamic_buffer(input_buffer_), delim, [this, self](const std::error_code& error, std::size_t bytes_transferred)
 		{
 			if (!error)
 			{
 				// Extract the delimiter from the buffer.
-				std::string line(input_buffer_.substr(0, bytes_transferred - 3));
+				std::string line(input_buffer_.substr(0, bytes_transferred - delim.size()));
 				input_buffer_.clear();
 
 				// Empty messages are heartbeats and so ignored.

@@ -61,17 +61,17 @@ void Sender::make_buffer()
 
 void Sender::start_connect(const std::string& address, unsigned int port)
 {
-	auto handle_write = [&](const std::error_code& ec, std::size_t bytes_transferred) {
+	auto handle_write = [this](const std::error_code& ec, std::size_t bytes_transferred) {
 		if (!ec) {
 			// Write the delimnator to signal the end of message.
-			asio::write(socket_, asio::buffer("\r\n", 3));
+			asio::write(socket_, asio::buffer(delim));
 		}
 		else {
 			fmt::print("Write error: {}\n", ec.message());
 		}
 	};
 
-	auto handle_connect = [&](const std::error_code& ec) {
+	auto handle_connect = [this, &handle_write](const std::error_code& ec) {
 		if (!ec) {
 			make_buffer();
 			// Start an asynchronous operation to write the message.
@@ -84,10 +84,15 @@ void Sender::start_connect(const std::string& address, unsigned int port)
 
 	asio::ip::tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
 	// Start the asynchronous connect operation.
-	socket_.async_connect(endpoint, handle_connect);
+	//socket_.async_connect(endpoint, handle_connect);
 
-	//socket_.connect(endpoint);
-	//make_buffer();
-	//asio::write(socket_, asio::buffer(flexbuffers_builder_.GetBuffer(), flexbuffers_builder_.GetSize()));
-	//asio::write(socket_, asio::buffer("\r\n", 3));
+	socket_.connect(endpoint);
+	make_buffer();
+	fmt::print("Buffer size: {}\n", flexbuffers_builder_.GetSize());
+	auto size = asio::write(socket_, asio::buffer(flexbuffers_builder_.GetBuffer(), flexbuffers_builder_.GetSize()));
+	fmt::print("First size: {}\n", size);
+	size = asio::write(socket_, asio::buffer(delim));
+	fmt::print("Second size: {}\n", size);
+	socket_.shutdown(asio::ip::tcp::socket::shutdown_both);
+	socket_.close();
 }

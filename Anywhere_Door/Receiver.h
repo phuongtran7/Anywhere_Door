@@ -21,6 +21,7 @@ private:
 private:
     std::string input_buffer_;
     asio::ip::tcp::socket socket_;
+    std::string delim{ "^_^" };
 };
 
 class Receiver
