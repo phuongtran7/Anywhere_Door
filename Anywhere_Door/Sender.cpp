@@ -48,42 +48,48 @@ void Sender::make_buffer()
 	if (file_name.empty()) {
 		return;
 	}
-	std::basic_ifstream<uint8_t> fStream{ file_name, std::ios::binary };
-	//std::vector<uint8_t> file_content{ std::istreambuf_iterator<uint8_t>(fStream), {} };
-	std::string file_content{ std::istreambuf_iterator<uint8_t>(fStream), {} };
+	std::basic_ifstream<unsigned char> fStream{ file_name, std::ios::binary };
+	std::vector<uint8_t> file_content{ std::istreambuf_iterator<uint8_t>(fStream), {} };
+	//std::string file_content{ std::istreambuf_iterator<unsigned char>(fStream), {} };
 
 	auto map_start = flexbuffers_builder_.StartMap();
 	flexbuffers_builder_.String("name", file_name.c_str());
-	flexbuffers_builder_.String("data", file_content.data());
+	//flexbuffers_builder_.String("data", file_content.data());
+	flexbuffers_builder_.TypedVector("data", [&] {
+		for (auto i : file_content) {
+			flexbuffers_builder_.UInt(i);
+		}
+		});
 	flexbuffers_builder_.EndMap(map_start);
 	flexbuffers_builder_.Finish();
 }
 
 void Sender::start_connect(const std::string& address, unsigned int port)
 {
-	auto handle_write = [this](const std::error_code& ec, std::size_t bytes_transferred) {
-		if (!ec) {
-			// Write the delimnator to signal the end of message.
-			asio::write(socket_, asio::buffer(delim));
-		}
-		else {
-			fmt::print("Write error: {}\n", ec.message());
-		}
-	};
-
-	auto handle_connect = [this, &handle_write](const std::error_code& ec) {
-		if (!ec) {
-			make_buffer();
-			// Start an asynchronous operation to write the message.
-			asio::async_write(socket_, asio::buffer(flexbuffers_builder_.GetBuffer(), flexbuffers_builder_.GetSize()), handle_write);
-		}
-		else {
-			fmt::print("Connect error: {}\n", ec.message());
-		}
-	};
-
 	asio::ip::tcp::endpoint endpoint(asio::ip::address::from_string(address), port);
-	// Start the asynchronous connect operation.
+
+	//auto handle_write = [this](const std::error_code& ec, std::size_t bytes_transferred) {
+	//	if (!ec) {
+	//		// Write the delimnator to signal the end of message.
+	//		asio::write(socket_, asio::buffer(delim));
+	//	}
+	//	else {
+	//		fmt::print("Write error: {}\n", ec.message());
+	//	}
+	//};
+
+	//auto handle_connect = [this, &handle_write](const std::error_code& ec) {
+	//	if (!ec) {
+	//		make_buffer();
+	//		// Start an asynchronous operation to write the message.
+	//		asio::async_write(socket_, asio::buffer(flexbuffers_builder_.GetBuffer(), flexbuffers_builder_.GetSize()), handle_write);
+	//	}
+	//	else {
+	//		fmt::print("Connect error: {}\n", ec.message());
+	//	}
+	//};
+
+	//// Start the asynchronous connect operation.
 	//socket_.async_connect(endpoint, handle_connect);
 
 	socket_.connect(endpoint);
