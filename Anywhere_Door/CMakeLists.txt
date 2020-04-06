@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.15)
 
-add_executable (Anywhere_Door "Anywhere_Door.cpp" "Anywhere_Door.h" "Receiver.cpp")
+add_executable (Anywhere_Door "Anywhere_Door.cpp" "Anywhere_Door.h" "Receiver.cpp" "Sender.cpp")
 
 set_target_properties(Anywhere_Door PROPERTIES CXX_STANDARD 17)
 target_compile_definitions(Anywhere_Door PRIVATE ASIO_STANDALONE _WIN32_WINNT=0x0A00)

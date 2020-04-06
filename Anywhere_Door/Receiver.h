@@ -5,6 +5,8 @@
 #include <system_error>
 #include <string>
 #include <fmt/format.h>
+#include <flatbuffers/flexbuffers.h>
+#include <fstream>
 
 class tcp_connection
     : public std::enable_shared_from_this<tcp_connection>

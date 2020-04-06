@@ -19,13 +19,23 @@ void tcp_connection::start_read()
 			if (!error)
 			{
 				// Extract the delimiter from the buffer.
-				std::string line(input_buffer_.substr(0, bytes_transferred - 2));
+				std::string line(input_buffer_.substr(0, bytes_transferred - 3));
 				input_buffer_.clear();
 
 				// Empty messages are heartbeats and so ignored.
 				if (!line.empty())
 				{
 					fmt::print("Received: {} bytes.\n", line.size());
+					auto data = flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(line.data()), line.size()).AsMap();
+
+					auto file_name = data["name"].AsString().c_str();
+					auto file_content = data[""].AsBlob();
+
+					fmt::print("File name: {}\n", file_name);
+
+					std::ofstream ofile(file_name, std::ios::binary);
+					ofile.write(reinterpret_cast<const char*>(&file_content), file_content.size());
+					ofile.close();
 				}
 
 				start_read();
@@ -58,7 +68,11 @@ void Receiver::start_accept()
 		{
 			if (!error)
 			{
+				fmt::print("Accepted connection.\n");
 				new_connection->start_read();
+			}
+			else {
+				fmt::print("Accept error: {}\n", error.message());
 			}
 			start_accept();
 		}
