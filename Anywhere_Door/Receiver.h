@@ -23,10 +23,10 @@ private:
     asio::ip::tcp::socket socket_;
 };
 
-class server
+class Receiver
 {
 public:
-    server(asio::io_context& io_context, short port);
+    Receiver(asio::io_context& io_context, short port);
 
 private:
     void do_accept();

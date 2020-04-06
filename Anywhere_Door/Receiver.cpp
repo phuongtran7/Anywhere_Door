@@ -48,13 +48,13 @@ void session::do_read()
 	);
 }
 
-server::server(asio::io_context& io_context, short port)
+Receiver::Receiver(asio::io_context& io_context, short port)
 	: acceptor_(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port))
 {
 	do_accept();
 }
 
-void server::do_accept()
+void Receiver::do_accept()
 {
 	acceptor_.async_accept(
 		[this](std::error_code ec, asio::ip::tcp::socket socket)

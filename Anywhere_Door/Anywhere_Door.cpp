@@ -13,7 +13,7 @@ int main()
 	asio::io_context io_context;
 	std::thread io_thread;;
 	std::unique_ptr<Sender> sender;
-	std::unique_ptr<server> receiver;
+	std::unique_ptr<Receiver> receiver;
 
 	try
 	{
@@ -31,7 +31,7 @@ int main()
 			sender->start("127.0.0.1", 9985);
 		}
 		else if (choice == 2) {
-			receiver = std::make_unique<server>(io_context, 9985);
+			receiver = std::make_unique<Receiver>(io_context, 9985);
 		}
 
 	}
