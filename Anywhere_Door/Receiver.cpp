@@ -1,20 +1,20 @@
 #include "Receiver.h"
 
-std::shared_ptr<tcp_connection> tcp_connection::create(asio::io_context& io_context)
+session::session(asio::ip::tcp::socket socket)
+	: socket_(std::move(socket))
 {
-	//return std::make_shared<tcp_connection>(io_context);
-	return std::shared_ptr<tcp_connection>(new tcp_connection(io_context));
 }
 
-asio::ip::tcp::socket& tcp_connection::socket()
+void session::start()
 {
-	return socket_;
+	do_read();
 }
 
-void tcp_connection::start_read()
+void session::do_read()
 {
-	// Start an asynchronous operation to read messages.
-	asio::async_read_until(socket_, asio::dynamic_buffer(input_buffer_), "\r\n", [&](const std::error_code& error, size_t bytes_transferred)
+	auto self(shared_from_this());
+
+	asio::async_read_until(socket_, asio::dynamic_buffer(input_buffer_), "\r\n", [this, self](const std::error_code& error, std::size_t bytes_transferred)
 		{
 			if (!error)
 			{
@@ -29,7 +29,7 @@ void tcp_connection::start_read()
 					auto data = flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(line.data()), line.size()).AsMap();
 
 					auto file_name = data["name"].AsString().c_str();
-					auto file_content = data[""].AsBlob();
+					auto file_content = data["data"].AsString();
 
 					fmt::print("File name: {}\n", file_name);
 
@@ -38,7 +38,7 @@ void tcp_connection::start_read()
 					ofile.close();
 				}
 
-				start_read();
+				do_read();
 			}
 			else
 			{
@@ -48,33 +48,22 @@ void tcp_connection::start_read()
 	);
 }
 
-tcp_connection::tcp_connection(asio::io_context& io_context)
-	: socket_(io_context)
+server::server(asio::io_context& io_context, short port)
+	: acceptor_(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port))
 {
+	do_accept();
 }
 
-Receiver::Receiver(asio::io_context& io_context)
-	: io_context_(io_context),
-	acceptor_(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), 9985))
+void server::do_accept()
 {
-	start_accept();
-}
-
-void Receiver::start_accept()
-{
-	std::shared_ptr<tcp_connection> new_connection = tcp_connection::create(io_context_);
-
-	acceptor_.async_accept(new_connection->socket(), [&](const std::error_code& error)
+	acceptor_.async_accept(
+		[this](std::error_code ec, asio::ip::tcp::socket socket)
 		{
-			if (!error)
+			if (!ec)
 			{
-				fmt::print("Accepted connection.\n");
-				new_connection->start_read();
+				std::make_shared<session>(std::move(socket))->start();
 			}
-			else {
-				fmt::print("Accept error: {}\n", error.message());
-			}
-			start_accept();
-		}
-	);
+
+			do_accept();
+		});
 }

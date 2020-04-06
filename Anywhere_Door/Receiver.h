@@ -8,29 +8,27 @@
 #include <flatbuffers/flexbuffers.h>
 #include <fstream>
 
-class tcp_connection
-    : public std::enable_shared_from_this<tcp_connection>
+class session
+    : public std::enable_shared_from_this<session>
 {
 public:
-    static std::shared_ptr<tcp_connection> create(asio::io_context& io_context);
-    asio::ip::tcp::socket& socket();
-    void start_read();
+    session(asio::ip::tcp::socket socket);
+    void start();
 
 private:
-    tcp_connection(asio::io_context& io_context);
+    void do_read();
 
 private:
-    asio::ip::tcp::socket socket_;
     std::string input_buffer_;
+    asio::ip::tcp::socket socket_;
 };
 
-class Receiver {
+class server
+{
 public:
-    Receiver(asio::io_context& io_context);
+    server(asio::io_context& io_context, short port);
 
 private:
-    void start_accept();
-private:
-    asio::io_context& io_context_;
+    void do_accept();
     asio::ip::tcp::acceptor acceptor_;
 };
