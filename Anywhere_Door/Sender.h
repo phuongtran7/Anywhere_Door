@@ -31,6 +31,7 @@ private:
 	std::string address_;
 	unsigned int port_;
 	asio::ip::tcp::socket socket_;
+	asio::ip::tcp::endpoint endpoint_;
 	flexbuffers::Builder flexbuffers_builder_;
 	std::string delim{ "^_^" };
 	std::vector<unsigned char> sendBuf_;

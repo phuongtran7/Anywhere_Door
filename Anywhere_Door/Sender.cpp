@@ -1,22 +1,27 @@
 #include "Sender.h"
 
-Sender::Sender(asio::io_context& io_context, std::string address, unsigned int port)
-    : address_(std::move(address)),
+Sender::Sender(asio::io_context& io_context, std::string address, unsigned int port) :
+	address_(std::move(address)),
 	port_(port),
-	socket_(io_context)
+	socket_(io_context),
+	endpoint_(asio::ip::address::from_string(address_), port_)
 {
 	start_connect();
 }
 
 Sender::~Sender()
 {
+	std::error_code ec;
+	socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
+	socket_.close();
 	clear_buffer();
 }
 
 Sender::Sender(Sender&& other) noexcept :
 	address_(std::exchange(other.address_, {})),
 	port_(std::exchange(other.port_, 0)),
-	socket_(std::move(other.socket_))
+	socket_(std::move(other.socket_)),
+	endpoint_(std::exchange(other.endpoint_, {}))
 {
 	start_connect();
 }
@@ -26,6 +31,7 @@ Sender& Sender::operator=(Sender&& other) noexcept
 	std::swap(address_, other.address_);
 	std::swap(port_, other.port_);
 	std::swap(socket_, other.socket_);
+	std::swap(endpoint_, other.endpoint_);
 	return *this;
 }
 
@@ -82,8 +88,6 @@ void Sender::make_buffer()
 
 void Sender::start_connect()
 {
-	asio::ip::tcp::endpoint endpoint(asio::ip::address::from_string(address_), port_);
-
 	auto handle_connect = [&](const std::error_code& ec) {
 		if (!ec) {
 			make_buffer();
@@ -104,7 +108,7 @@ void Sender::start_connect()
 	};
 
 	// Start the asynchronous connect operation.
-	socket_.async_connect(endpoint, handle_connect);
+	socket_.async_connect(endpoint_, handle_connect);
 }
 
 void Sender::clear_buffer()
