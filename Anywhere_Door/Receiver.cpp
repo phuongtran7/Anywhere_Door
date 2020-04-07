@@ -42,7 +42,7 @@ void session::do_read()
 			}
 			else if (error == asio::error::eof)
 			{
-				// There is no more message from this connection. It's closed
+				// There is no more message from this connection. It's closed.
 			}
 			else {
 				fmt::print("Error on receive: {}\n", error.message());
