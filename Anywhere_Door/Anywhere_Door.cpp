@@ -32,14 +32,13 @@ int main()
 		else if (choice == 2) {
 			receiver = std::make_unique<Receiver>(io_context, 9985);
 		}
-
-		io_thread.join();
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		fmt::print("{}\n", e.what());
 	}
 
+	io_thread.join();
 	std::getchar();
 
 	return 0;
