@@ -49,19 +49,11 @@ void Sender::make_buffer()
 		return;
 	}
 	std::basic_ifstream<unsigned char> fStream{ file_name, std::ios::binary };
-	//std::vector<uint8_t> file_content{ std::istreambuf_iterator<uint8_t>(fStream), {} };
 	std::string file_content{ std::istreambuf_iterator<unsigned char>(fStream), {} };
 
 	auto map_start = flexbuffers_builder_.StartMap();
 	flexbuffers_builder_.String("name", file_name.c_str());
 	flexbuffers_builder_.String("data", file_content.data());
-	
-	//flexbuffers_builder_.TypedVector("data", [&] {
-	//	for (auto i : file_content) {
-	//		flexbuffers_builder_.UInt(i);
-	//	}
-	//	});
-
 	flexbuffers_builder_.EndMap(map_start);
 	flexbuffers_builder_.Finish();
 }

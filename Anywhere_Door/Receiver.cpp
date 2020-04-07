@@ -31,12 +31,6 @@ void session::do_read()
 					auto file_name = data["name"].AsString().c_str();
 					auto file_content = data["data"].AsString();
 
-					//auto file_content = data["data"].AsTypedVector();
-					//std::vector<unsigned char> outData(file_content.size());
-					//for (auto i = 0; i < file_content.size(); i++) {
-					//	outData.push_back(i);
-					//}
-
 					fmt::print("File name: {}\n", file_name);
 
 					std::ofstream ofile(file_name, std::ios::binary);
@@ -46,8 +40,11 @@ void session::do_read()
 
 				do_read();
 			}
-			else
+			else if (error == asio::error::eof)
 			{
+				// There is no more message from this connection. It's closed
+			}
+			else {
 				fmt::print("Error on receive: {}\n", error.message());
 			}
 		}
