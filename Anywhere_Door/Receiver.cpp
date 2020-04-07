@@ -29,19 +29,18 @@ void session::do_read()
 					auto data = flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(line.data()), line.size()).AsMap();
 
 					auto file_name = data["name"].AsString().c_str();
-					//auto file_content = data["data"].AsString();
+					auto file_content = data["data"].AsString();
 
-					auto file_content = data["data"].AsTypedVector();
-
-					std::vector<unsigned char> outData(file_content.size());
-					for (auto i = 0; i < file_content.size(); i++) {
-						outData.push_back(i);
-					}
+					//auto file_content = data["data"].AsTypedVector();
+					//std::vector<unsigned char> outData(file_content.size());
+					//for (auto i = 0; i < file_content.size(); i++) {
+					//	outData.push_back(i);
+					//}
 
 					fmt::print("File name: {}\n", file_name);
 
 					std::ofstream ofile(file_name, std::ios::binary);
-					ofile.write(reinterpret_cast<const char*>(&outData), outData.size());
+					ofile.write(reinterpret_cast<const char*>(file_content.str().data()), file_content.size());
 					ofile.close();
 				}
 
