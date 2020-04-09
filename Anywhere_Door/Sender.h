@@ -14,7 +14,7 @@
 class Sender
 {
 public:
-	Sender(asio::io_context& io_context, std::string address, unsigned int port);
+	Sender(asio::io_context& io_context, unsigned int port);
 	~Sender();
 
 	Sender(const Sender& other) = delete;

@@ -1,17 +1,17 @@
 #include "Sender.h"
 
-Sender::Sender(asio::io_context& io_context, std::string address, unsigned int port) :
-	address_(std::move(address)),
+Sender::Sender(asio::io_context& io_context, unsigned int port) :
+	address_{},
 	port_(port),
 	socket_(io_context),
 	endpoint_(),
 	broadcast_listener_(io_context)
 {
 	init_broadcast_listener();
-	auto receiver_address = get_address();
-	if (!receiver_address.empty()) {
-		fmt::print("Got receiver address: {}\n", receiver_address);
-		endpoint_ = asio::ip::tcp::endpoint(asio::ip::address::from_string(receiver_address), port_);
+	address_ = get_address();
+	if (!address_.empty()) {
+		fmt::print("Got receiver address: {}\n", address_);
+		endpoint_ = asio::ip::tcp::endpoint(asio::ip::address::from_string(address_), port_);
 		start_connect();
 	}
 }
@@ -32,10 +32,10 @@ Sender::Sender(Sender&& other) noexcept :
 	broadcast_listener_(std::move(other.broadcast_listener_))
 {
 	init_broadcast_listener();
-	auto receiver_address = get_address();
-	if (!receiver_address.empty()) {
-		fmt::print("Got receiver address: {}\n", receiver_address);
-		endpoint_ = asio::ip::tcp::endpoint(asio::ip::address::from_string(receiver_address), port_);
+	address_ = get_address();
+	if (!address_.empty()) {
+		fmt::print("Got receiver address: {}\n", address_);
+		endpoint_ = asio::ip::tcp::endpoint(asio::ip::address::from_string(address_), port_);
 		start_connect();
 	}
 }

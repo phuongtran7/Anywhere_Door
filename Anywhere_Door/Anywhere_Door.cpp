@@ -27,7 +27,7 @@ int main()
 		);
 
 		if (choice == 1) {
-			sender = std::make_unique<Sender>(io_context, "127.0.0.1", 9985);
+			sender = std::make_unique<Sender>(io_context, 9985);
 		}
 		else if (choice == 2) {
 			receiver = std::make_unique<Receiver>(io_context, 9985);
