@@ -3,7 +3,7 @@
 session::session(asio::ip::tcp::socket socket)
 	: socket_(std::move(socket))
 {
-	fmt::print("Local enpoint: {}\n", socket_.local_endpoint().address().to_string());
+	fmt::print("Got connection from: {}\n", socket_.local_endpoint().address().to_string());
 }
 
 void session::start()
