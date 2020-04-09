@@ -72,8 +72,9 @@ void Sender::make_buffer()
 	if (file_name.empty()) {
 		return;
 	}
-	std::basic_ifstream<unsigned char> fStream{ file_name, std::ios::binary };
-	std::string file_content{ std::istreambuf_iterator<unsigned char>(fStream), {} };
+
+	std::ifstream file(file_name, std::ios::binary);
+	std::string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 	auto map_start = flexbuffers_builder_.StartMap();
 	flexbuffers_builder_.String("name", file_name.c_str());
