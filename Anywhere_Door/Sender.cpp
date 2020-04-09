@@ -94,7 +94,7 @@ void Sender::make_buffer()
 
 	auto map_start = flexbuffers_builder_.StartMap();
 	flexbuffers_builder_.String("name", file_name.c_str());
-	flexbuffers_builder_.String("data", file_content.data());
+	flexbuffers_builder_.String("data", file_content);
 	flexbuffers_builder_.EndMap(map_start);
 	flexbuffers_builder_.Finish();
 
