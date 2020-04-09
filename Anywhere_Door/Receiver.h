@@ -7,6 +7,8 @@
 #include <fmt/format.h>
 #include <flatbuffers/flexbuffers.h>
 #include <fstream>
+#include <thread>
+#include <atomic>
 
 class session
     : public std::enable_shared_from_this<session>
@@ -28,8 +30,16 @@ class Receiver
 {
 public:
     Receiver(asio::io_context& io_context, short port);
+    ~Receiver();
 
 private:
     void do_accept();
+    void broadcast_address();
+
+private:
     asio::ip::tcp::acceptor acceptor_;
+    asio::ip::udp::socket broadcaster_;
+    asio::ip::udp::endpoint broadcast_destination_;
+    std::thread broadcast_thread_;
+    std::atomic_bool should_broadcast_;
 };

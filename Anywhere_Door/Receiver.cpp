@@ -3,6 +3,7 @@
 session::session(asio::ip::tcp::socket socket)
 	: socket_(std::move(socket))
 {
+	fmt::print("Local enpoint: {}\n", socket_.local_endpoint().address().to_string());
 }
 
 void session::start()
@@ -51,10 +52,27 @@ void session::do_read()
 	);
 }
 
-Receiver::Receiver(asio::io_context& io_context, short port)
-	: acceptor_(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port))
+Receiver::Receiver(asio::io_context& io_context, short port) :
+	acceptor_(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)),
+	broadcaster_(io_context),
+	broadcast_destination_(asio::ip::address_v4::broadcast(), 55987),
+	should_broadcast_(true)
 {
+	broadcaster_.open(broadcast_destination_.protocol());
+	broadcaster_.set_option(asio::socket_base::broadcast(true));
+
+	broadcast_thread_ = std::thread([&] {
+		broadcast_address();
+		}
+	);
+
 	do_accept();
+}
+
+Receiver::~Receiver()
+{
+	should_broadcast_.store(false);
+	broadcast_thread_.join();
 }
 
 void Receiver::do_accept()
@@ -69,4 +87,13 @@ void Receiver::do_accept()
 
 			do_accept();
 		});
+}
+
+void Receiver::broadcast_address()
+{
+	std::string msg{"I AM HERE"};
+	while (should_broadcast_) {
+		broadcaster_.send_to(asio::buffer(msg, msg.size()), broadcast_destination_);
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 }
