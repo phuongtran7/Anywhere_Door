@@ -91,7 +91,7 @@ void Receiver::do_accept()
 
 void Receiver::broadcast_address()
 {
-	std::string msg{"I AM HERE"};
+	std::string msg{"I Am Here"};
 	while (should_broadcast_) {
 		broadcaster_.send_to(asio::buffer(msg, msg.size()), broadcast_destination_);
 		std::this_thread::sleep_for(std::chrono::seconds(1));

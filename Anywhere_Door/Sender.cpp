@@ -4,9 +4,16 @@ Sender::Sender(asio::io_context& io_context, std::string address, unsigned int p
 	address_(std::move(address)),
 	port_(port),
 	socket_(io_context),
-	endpoint_(asio::ip::address::from_string(address_), port_)
+	endpoint_(),
+	broadcast_listener_(io_context)
 {
-	start_connect();
+	init_broadcast_listener();
+	auto receiver_address = get_address();
+	if (!receiver_address.empty()) {
+		fmt::print("Got receiver address: {}\n", receiver_address);
+		endpoint_ = asio::ip::tcp::endpoint(asio::ip::address::from_string(receiver_address), port_);
+		start_connect();
+	}
 }
 
 Sender::~Sender()
@@ -21,9 +28,16 @@ Sender::Sender(Sender&& other) noexcept :
 	address_(std::exchange(other.address_, {})),
 	port_(std::exchange(other.port_, 0)),
 	socket_(std::move(other.socket_)),
-	endpoint_(std::exchange(other.endpoint_, {}))
+	endpoint_(std::exchange(other.endpoint_, {})),
+	broadcast_listener_(std::move(other.broadcast_listener_))
 {
-	start_connect();
+	init_broadcast_listener();
+	auto receiver_address = get_address();
+	if (!receiver_address.empty()) {
+		fmt::print("Got receiver address: {}\n", receiver_address);
+		endpoint_ = asio::ip::tcp::endpoint(asio::ip::address::from_string(receiver_address), port_);
+		start_connect();
+	}
 }
 
 Sender& Sender::operator=(Sender&& other) noexcept
@@ -32,6 +46,8 @@ Sender& Sender::operator=(Sender&& other) noexcept
 	std::swap(port_, other.port_);
 	std::swap(socket_, other.socket_);
 	std::swap(endpoint_, other.endpoint_);
+	std::swap(broadcast_listener_, other.broadcast_listener_);
+
 	return *this;
 }
 
@@ -116,4 +132,26 @@ void Sender::clear_buffer()
 {
 	sendBuf_.clear();
 	flexbuffers_builder_.Clear();
+}
+
+void Sender::init_broadcast_listener()
+{
+	auto endpoint = asio::ip::udp::endpoint(asio::ip::udp::v4(), 55987);
+	broadcast_listener_.open(endpoint.protocol());
+	broadcast_listener_.set_option(asio::ip::udp::socket::reuse_address(true));
+	broadcast_listener_.bind(endpoint);
+	broadcast_listener_.set_option(asio::socket_base::broadcast(true));
+}
+
+std::string Sender::get_address()
+{
+	asio::ip::udp::endpoint sender_endpoint;
+	std::array<char, 50> buffer;
+	auto byte_recv = broadcast_listener_.receive_from(asio::buffer(buffer), sender_endpoint);
+	if (byte_recv != 0) {
+		if (std::string(buffer.data(), byte_recv) == "I Am Here") {
+			return sender_endpoint.address().to_string();
+		}
+	}
+	return std::string{};
 }

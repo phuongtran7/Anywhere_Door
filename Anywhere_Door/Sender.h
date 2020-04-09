@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <iostream>
 #include <fstream>
+#include <thread>
 
 class Sender
 {
@@ -26,7 +27,8 @@ private:
 	void make_buffer();
 	void start_connect();
 	void clear_buffer();
-
+	void init_broadcast_listener();
+	std::string get_address();
 private:
 	std::string address_;
 	unsigned int port_;
@@ -35,4 +37,6 @@ private:
 	flexbuffers::Builder flexbuffers_builder_;
 	std::string delim{ "^_^" };
 	std::vector<unsigned char> sendBuf_;
+	asio::ip::udp::socket broadcast_listener_;
+	std::thread broadcast_listen_thread_;
 };
