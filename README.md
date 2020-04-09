@@ -23,4 +23,4 @@ cmake --build .
 
 ## Usage
 1. Put the compiled binary next to files that need to be transferred and another at destination.
-2. Start the destination binary first.
+2. Start the destination binary first. As it will send a broadcast message every one second to annouce its address.
